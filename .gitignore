@@ -1,4 +1,5 @@
 # Dependencies
+fe-app/node_modules
 node_modules
 __pycache__/
 *.py[cod]
@@ -10,8 +11,8 @@ venv/
 env/
 
 # Build outputs
-dist
-dist-ssr
+fe-app/dist
+fe-app/dist-ssr
 *.local
 build/
 .next/
