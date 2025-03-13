@@ -1,68 +1,51 @@
 from fastapi import APIRouter, HTTPException
 from models.schemas import PageAnalysisRequest, PageAnalysisResponse
-from services.analysis import analysis_store, run_page_analysis
 from datetime import datetime
-import uuid
+import httpx
+import os
 
 router = APIRouter()
 
-@router.post("/analyze-pages", response_model=PageAnalysisResponse)
+NODEJS_ANALYSIS_SERVER = "http://localhost:3002"
+
+@router.post("/analyze-pages", response_model=str)
 async def analyze_pages(request: PageAnalysisRequest):
-    """Start page analysis for a given URL"""
+    """Forward page analysis request to Node.js server"""
     try:
-        # Validate required fields
-        if not request.url or not request.page_group or not request.competitor_name:
-            raise HTTPException(
-                status_code=400,
-                detail="Missing required parameters. Need url, page_group, and competitor_name"
+        print(f"[{datetime.now()}] 📥 Received analysis request for URL: {request.url}")
+        print(f"[{datetime.now()}] 📋 Request details: {request.dict()}")
+
+        # Forward request to Node.js server
+        async with httpx.AsyncClient(timeout=600.0) as client:  # 10 minutes timeout
+            response = await client.post(
+                f"{NODEJS_ANALYSIS_SERVER}/api/analyze-pages",
+                json={
+                    "url": request.url,
+                    "page_group": request.page_group,
+                    "company_name": request.company_name
+                }
             )
 
-        # Validate URL format
-        try:
-            if not request.url.startswith(('http://', 'https://')):
-                request.url = f"https://{request.url}"
-            # Test URL parsing
-            from urllib.parse import urlparse
-            urlparse(request.url)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Invalid URL format")
+            if response.status_code != 200:
+                error_text = response.text
+                print(f"[{datetime.now()}] ❌ Node.js server error: {error_text}")
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=error_text
+                )
+            
+            print(f"[{datetime.now()}] 📦 Node.js server response: {response.json()}")
+            return response.json()
 
-        # Create analysis ID and response object
-        analysis_id = str(uuid.uuid4())
-        analysis = PageAnalysisResponse(
-            id=analysis_id,
-            status="pending",
-            url=request.url,
-            page_group=request.page_group,
-            competitor_name=request.competitor_name,
-            timestamp=datetime.now()
+    except httpx.RequestError as e:
+        print(f"[{datetime.now()}] 🔥 Error connecting to Node.js server: {str(e)}")
+        raise HTTPException(
+            status_code=503,
+            detail="Analysis service unavailable"
         )
-
-        # Store the analysis
-        analysis_store[analysis_id] = analysis
-
-        # Log the start of analysis
-        print("Starting analysis:", {
-            "id": analysis_id,
-            "url": analysis.url,
-            "page_group": request.page_group,
-            "competitor_name": request.competitor_name,
-        })
-
-        # Start analysis process asynchronously
-        await run_page_analysis(request.url, request.page_group, analysis_id)
-
-        return analysis
-    except HTTPException:
-        raise
     except Exception as e:
-        print("Error in analyze-pages endpoint:", e)
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.get("/analyze-pages/{analysis_id}", response_model=PageAnalysisResponse)
-async def get_analysis(analysis_id: str):
-    """Get analysis status"""
-    analysis = analysis_store.get(analysis_id)
-    if not analysis:
-        raise HTTPException(status_code=404, detail="Analysis not found")
-    return analysis 
+        print(f"[{datetime.now()}] 🔥 Unexpected error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error"
+        )

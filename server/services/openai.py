@@ -17,7 +17,8 @@ async def get_competitor_insights(company_name: str) -> Dict[str, Any]:
         prompt = f"""
 You are an expert market research analyst providing insights about "{company_name}" and its main competitors. 
 Include 5-10 of the main competitors of {company_name}. For each competitor, include their official website URL and estimated annual revenue if available.
-Ensure the JSON is valid and properly formatted. Only return the JSON object, no additional text.
+Ensure the JSON is valid and properly formatted. Only return the JSON object, no additional text. 
+Ensure that the website URL is the ecommerce where shoppers can buy products.
 
 Format your response as a JSON object with the following structure:
 
@@ -71,6 +72,7 @@ async def get_single_competitor_insight(company_name: str) -> Dict[str, Any]:
 You are an expert market research analyst. Provide detailed insights about "{company_name}". 
 Include the official website URL for {company_name} and estimated annual revenue if available.
 Ensure the JSON is valid and properly formatted. Only return the JSON object with no additional text.
+Ensure that the website URL is the ecommerce where shoppers can buy products.
 
 Format your response as a JSON object with the following structure:
 

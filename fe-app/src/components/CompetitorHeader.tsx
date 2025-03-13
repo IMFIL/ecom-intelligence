@@ -1,15 +1,14 @@
-
-import React from 'react';
-import { Award, Activity, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Award, Activity, Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { LayoutGrid, Home, ShoppingCart, CreditCard } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/dropdown-menu";
+import { LayoutGrid, Home, ShoppingCart, CreditCard } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CompetitorHeaderProps {
   name: string;
@@ -36,8 +35,8 @@ const CompetitorHeader = ({ name, description, website }: CompetitorHeaderProps)
         </h3>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="whitespace-nowrap border-[#9b87f5] text-[#9b87f5] hover:bg-[#9b87f5] hover:text-white"
             >
               <Activity className="w-4 h-4 mr-2" />
@@ -64,11 +63,11 @@ const CompetitorHeader = ({ name, description, website }: CompetitorHeaderProps)
         </DropdownMenu>
       </div>
       <p className="text-gray-600 leading-relaxed text-sm">{description}</p>
-      
+
       {website && (
-        <a 
-          href={website} 
-          target="_blank" 
+        <a
+          href={website}
+          target="_blank"
           rel="noopener noreferrer"
           className="text-[#9b87f5] hover:underline flex items-center mt-2 text-sm"
         >

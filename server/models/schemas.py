@@ -20,16 +20,16 @@ PageGroup = Literal["PDP", "PLP", "Homepage", "Cart", "Checkout"]
 
 class PageAnalysisRequest(BaseModel):
     url: str
-    pageGroup: PageGroup
-    competitorName: str
+    page_group: PageGroup
+    company_name: str
 
 class PageAnalysisResponse(BaseModel):
     id: str
     status: Literal["pending", "running", "completed", "failed"]
     url: str
-    pageGroup: PageGroup
-    competitorName: str
-    timestamp: str
+    page_group: PageGroup
+    company_name: str
+    timestamp: datetime
     error: Optional[str] = None
 
 class CompetitorInsight(BaseModel):

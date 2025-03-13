@@ -5,8 +5,46 @@ from services.wappalyzer import analyze_technologies
 from services.similarweb import get_website_traffic
 from services.pagespeed import fetch_pagespeed_metrics
 from services.openai import get_competitor_insights, get_single_competitor_insight
+from pathlib import Path
+import os
 
 router = APIRouter()
+
+@router.get("/check-screenshots")
+async def check_screenshots(url: str = Query(...), page_group: str = Query(...)):
+    """Check if screenshots exist for a given URL and page group"""
+    try:
+        # Get the domain from the URL
+        from urllib.parse import urlparse
+        domain = urlparse(url).netloc.replace('www.', '')
+        
+        # Construct the path to check
+        screenshots_path = Path("../analysis-server/screenshots")
+        domain_path = screenshots_path / domain
+        
+        if not domain_path.exists():
+            return {"exists": False, "path": None}
+            
+        # Look for files matching the pattern
+        files = [f for f in os.listdir(domain_path) 
+                if f.startswith(f"{page_group}_") and f.endswith(".jpg") and not f.endswith("_part1.jpg") 
+                and not f.endswith("_part2.jpg") and not f.endswith("_part3.jpg")]
+        
+        if not files:
+            return {"exists": False, "path": None}
+            
+        # Sort files by name (which includes timestamp) to get the latest
+        files.sort(reverse=True)
+        latest_file = str(domain_path / files[0])
+        
+        return {
+            "exists": True,
+            "path": latest_file
+        }
+        
+    except Exception as e:
+        print("Error checking screenshots:", str(e))
+        raise HTTPException(status_code=500, detail="Failed to check screenshots")
 
 @router.get("/analyze-technologies")
 async def analyze_website_technologies(url: str = Query(..., description="Website URL to analyze")):
