@@ -10,6 +10,12 @@ __pycache__/
 venv/
 env/
 
+# Screenshots and generated images
+/screenshots/
+/screenshots/**/*
+**/screenshots/*.jpg
+**/screenshots/**/*.jpg
+
 # Build outputs
 fe-app/dist
 fe-app/dist-ssr
