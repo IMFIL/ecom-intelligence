@@ -1,111 +1,141 @@
-# Compete Insight Hub Server (Python)
+# Compete Insight Hub API (Python Server)
 
-This is the Python backend server for the Compete Insight Hub application, built with FastAPI. The server provides a complete API for competitor analysis, technology detection, and performance metrics.
+This FastAPI server provides various endpoints for competitor analysis, technology stack detection, and performance metrics.
 
 ## Setup
 
-1. Create a virtual environment and activate it:
+1. Create a virtual environment:
 
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
 2. Install dependencies:
 
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-3. Install Playwright browsers (required for page analysis):
+3. Create a `.env` file with the following variables:
 
-```bash
-playwright install
-```
+   ```
+   PORT=3001
+   OPENAI_API_KEY=your_openai_api_key
+   SIMILARWEB_API_KEY=your_similarweb_api_key
+   PAGESPEED_API_KEY=your_pagespeed_api_key
+   ```
 
-4. Create a `.env` file in the server directory with your API keys (see Environment Variables section below).
+4. Start the server:
+   ```bash
+   python main.py
+   ```
 
-## Running the Server
-
-Development mode (with auto-reload):
-
-```bash
-uvicorn main:app --reload --port 3001
-```
-
-Production mode:
-
-```bash
-uvicorn main:app --host 0.0.0.0 --port 3001
-```
-
-## API Documentation
-
-Once the server is running, you can access the interactive API documentation at:
-
-- Swagger UI: http://localhost:3001/docs
-- ReDoc: http://localhost:3001/redoc
+The server will start on port 3001 by default.
 
 ## API Endpoints
 
-### Search Routes
+### Analysis
 
-- `GET /api/analyze-technologies`: Analyze website technologies using Wappalyzer
-- `GET /api/company-insights`: Get company insights and competitor analysis
-- `GET /api/single-company-insight`: Get insights for a single company
-- `GET /api/traffic`: Get website traffic data from SimilarWeb
-- `GET /api/pagespeed`: Get PageSpeed metrics for a website
+#### POST `/api/analyze-pages`
 
-### Analysis Routes
+Forward page analysis requests to the Node.js analysis server.
 
-- `POST /api/analyze-pages`: Start page analysis for a given URL
-- `GET /api/analyze-pages/{analysis_id}`: Get status of a page analysis
+**Request Body:**
 
-## Project Structure
-
-```
-server-python/
-├── main.py           # FastAPI application entry point
-├── requirements.txt  # Python dependencies
-├── models/          # Pydantic models and schemas
-│   └── schemas.py   # Data models and type definitions
-├── routes/          # API route handlers
-│   ├── search.py    # Search-related endpoints
-│   └── analysis.py  # Analysis-related endpoints
-└── services/        # Business logic and external service integrations
-    ├── analysis.py  # Page analysis using Browserbase
-    ├── openai.py    # OpenAI integration for insights
-    ├── pagespeed.py # Google PageSpeed integration
-    ├── similarweb.py # SimilarWeb traffic analysis
-    └── wappalyzer.py # Technology detection
+```json
+{
+  "url": "string",
+  "page_group": "string",
+  "company_name": "string"
+}
 ```
 
-## Environment Variables
+### Screenshots
 
-The following environment variables must be set in your `.env` file:
+#### GET `/api/check-screenshots`
 
+Check if screenshots exist for a given URL and page group.
+
+**Query Parameters:**
+
+- `url`: Website URL
+- `page_group`: Type of page (e.g., "PDP")
+
+**Response:**
+
+```json
+{
+  "exists": boolean,
+  "path": string | null
+}
 ```
-# API Keys
-WAPPALYZER_API_KEY=your_wappalyzer_api_key
-PAGESPEED_API_KEY=your_pagespeed_api_key
-OPENAI_API_KEY=your_openai_api_key
-SIMILARWEB_API_KEY=your_similarweb_api_key
-BROWSERBASE_API_KEY=your_browserbase_api_key
-BROWSERBASE_PROJECT_ID=your_browserbase_project_id
 
-# Server Configuration
-PORT=3001
-NODE_ENV=development
-```
+### Technology Analysis
 
-## Transitioning from Node.js Server
+#### GET `/api/analyze-technologies`
 
-This Python server maintains exact feature parity with the original Node.js server. All endpoints, request/response formats, and functionality match the Node.js implementation exactly.
+Analyze website technologies using Wappalyzer.
 
-You can run both servers simultaneously during the transition period by:
+**Query Parameters:**
 
-1. Running the Node.js server on port 3001 (default)
-2. Running this Python server on a different port (e.g., 3002)
-3. Updating your frontend API configuration to point to the desired server
+- `url`: Website URL to analyze
 
-Once you're confident in the Python server's functionality, you can switch over completely by updating the frontend to use the Python server's endpoint.
+### Company Insights
+
+#### GET `/api/company-insights`
+
+Get comprehensive company insights and analysis.
+
+**Query Parameters:**
+
+- `companyName`: Company name to analyze
+
+#### GET `/api/single-company-insight`
+
+Get a single company insight.
+
+**Query Parameters:**
+
+- `companyName`: Company name to analyze
+
+### Traffic Analysis
+
+#### GET `/api/traffic`
+
+Get website traffic data from SimilarWeb.
+
+**Query Parameters:**
+
+- `url`: Website URL to analyze
+
+### Performance Metrics
+
+#### GET `/api/pagespeed`
+
+Get PageSpeed metrics for a website.
+
+**Query Parameters:**
+
+- `url`: Website URL to analyze
+- `strategy`: Analysis strategy ("mobile" or "desktop")
+
+## Static Files
+
+The server mounts the screenshots directory from the analysis-server at `/api/screenshots` for easy access to generated screenshots.
+
+## CORS
+
+CORS is enabled for all origins in development. In production, you should specify allowed origins in the `main.py` file.
+
+## Error Handling
+
+All endpoints include proper error handling and will return appropriate HTTP status codes and error messages when issues occur.
+
+## Dependencies
+
+- FastAPI
+- Uvicorn
+- httpx
+- python-dotenv
+- Other dependencies listed in `requirements.txt`
